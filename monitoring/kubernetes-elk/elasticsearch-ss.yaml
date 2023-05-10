@@ -1,6 +1,6 @@
 # RBAC authn and authz
-apiVersion: v1
-kind: ServiceAccount
+apiVersion: v1                                            #used to authenticate and authorize requests made by the application to other Kubernetes resources.                                         
+kind: ServiceAccount                                     
 metadata:
   name: elasticsearch-logging
   namespace: kube-system
@@ -9,7 +9,7 @@ metadata:
     kubernetes.io/cluster-service: "true"
     addonmanager.kubernetes.io/mode: Reconcile
 ---
-kind: ClusterRole
+kind: ClusterRole                                         #ClusterRole is used to grant permissions to Elasticsearch-logging in a Kubernetes cluster
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: elasticsearch-logging
@@ -17,9 +17,9 @@ metadata:
     k8s-app: elasticsearch-logging
     kubernetes.io/cluster-service: "true"
     addonmanager.kubernetes.io/mode: Reconcile
-rules:
+rules:                                                    #rules are granting access.
 - apiGroups:
-  - ""
+  - ""                                                    #means that the rules apply to the core Kubernetes API group.
   resources:
   - "services"
   - "namespaces"
@@ -27,7 +27,7 @@ rules:
   verbs:
   - "get"
 ---
-kind: ClusterRoleBinding
+kind: ClusterRoleBinding                                    #used to bind a ClusterRole to a set of subjects
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   namespace: kube-system
@@ -40,13 +40,13 @@ subjects:
 - kind: ServiceAccount
   name: elasticsearch-logging
   namespace: kube-system
-  apiGroup: ""
+  apiGroup: ""                                     #This specifies the API group of the subject,the empty string "" means that the subject is in the core Kubernetes API group.
 roleRef:
   kind: ClusterRole
   name: elasticsearch-logging
   apiGroup: ""
 ---
-# Elasticsearch deployment itself
+# Elasticsearch deployment itself using StatefulSet provides persistent and stable identities for each replica.
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -90,7 +90,7 @@ spec:
         - containerPort: 9300
           name: transport
           protocol: TCP
-        volumeMounts:
+        volumeMounts:                               #This specifies the volumes that should be mounted by the container.
         - name: elasticsearch-logging
           mountPath: /data
         env:
@@ -98,7 +98,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-      volumes:
+      volumes:                                            #This specifies the volumes to use in the Pod.
       - name: elasticsearch-logging
         emptyDir: {}
       # Elasticsearch requires vm.max_map_count to be at least 262144.
